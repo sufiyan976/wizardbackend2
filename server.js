@@ -6,7 +6,6 @@ const cors = require("cors");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-
 app.use(cors());
 app.use(express.json());
 
@@ -66,6 +65,14 @@ app.get("/stocks", async (req, res) => {
             zeroVolume: {
                 scan_clause:
                     "( {45603} ( latest close >= 1 and latest volume = 0 ) )"
+            },
+            nifty50CloseAbove20: {
+                scan_clause:
+                    "( {33492} ( latest close > 20 ) )"
+            },
+            allCashCloseAbove20: {
+                scan_clause:
+                    "( {cash} ( latest close > 20 ) )"
             }
         };
 
@@ -103,7 +110,9 @@ app.get("/stocks", async (req, res) => {
             fiftyTwoWeekHigh: "fiftyTwoWeekHigh",
             fiftyEmaSupport: "fiftyEmaSupport",
             vcpPattern: "vcpPattern",
-            zeroVolume: "zeroVolume"
+            zeroVolume: "zeroVolume",
+            nifty50CloseAbove20: "nifty50CloseAbove20",
+            allCashCloseAbove20: "allCashCloseAbove20"
         };
 
         for (let i = 0; i < responses.length; i++) {
@@ -129,21 +138,7 @@ app.get("/stocks", async (req, res) => {
         result.advanceBuy = calcMomentum(result.advanceBuy || []);
         result.advanceSell = calcMomentum(result.advanceSell || []);
 
-        const allStocks = [
-            ...(result.buy || []),
-            ...(result.sell || []),
-            ...(result.advanceBuy || []),
-            ...(result.advanceSell || []),
-            ...(result.volumeGainers || []),
-            ...(result.topGainers || []),
-            ...(result.topLosers || []),
-            ...(result.niftyGainers || []),
-            ...(result.niftyLosers || []),
-            ...(result.fiftyTwoWeekHigh || []),
-            ...(result.fiftyEmaSupport || []),
-            ...(result.vcpPattern || []),
-            ...(result.zeroVolume || [])
-        ];
+        const allStocks = Object.values(result).flat();
 
         res.json(allStocks);
     } catch (error) {
